@@ -1,0 +1,72 @@
+drop table transport;
+drop table air_transport;
+drop table land_transport;
+drop table aircraft;
+drop table helicopter;
+drop table car;
+drop table tank;
+drop table base;
+drop table peoples;
+
+create table transport(
+    id serial primary key NOT NULL,
+	base INT,
+	people INT
+);
+create table air_transport(
+    id serial primary key NOT NULL,
+	base INT,
+	people INT,
+	lifetime INT
+);
+create table land_transport(
+    id serial primary key NOT NULL,
+	base INT,
+	people INT,
+	mileage INT
+);
+create table aircraft(
+    id serial primary key NOT NULL,
+	base INT,
+	people INT,
+	lifetime INT,
+	range INT
+);
+create table helicopter(
+    id serial primary key NOT NULL,
+	base INT,
+	people INT,
+	lifetime INT,
+	rate_of_climb INT
+);
+create table car(
+    id serial primary key NOT NULL,
+	base INT,
+	people INT,
+	mileage INT,
+	acceleration_time REAL
+);
+create table tank(
+    id serial primary key NOT NULL,
+	base INT,
+	people INT,
+	mileage INT,
+	shot INT
+);
+create table base(
+    id serial primary key NOT NULL,
+	adress varchar(32),
+	name varchar(32)
+);
+create table peoples(
+    id serial primary key NOT NULL,
+	firstname varchar(64),
+	lastname varchar(64)
+);
+create table spaceship(
+    id serial primary key NOT NULL,
+	base INT,
+	people INT,
+	lifetime INT,
+	payload INT
+);
