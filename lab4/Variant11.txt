@@ -1,0 +1,158 @@
+sudo -u postgres psql
+
+DROP DATABASE variant11;
+
+Создаем новую БД
+CREATE DATABASE variant11;
+
+Подключение:
+\connect variant11
+
+Удаление существующих таблиц:
+DROP TABLE road_firm;
+DROP TABLE ancestor;
+DROP TABLE services;
+DROP TABLE zakazonconstruction;
+
+Создание таблиц: 
+CREATE TABLE road_firm (
+	id int PRIMARY KEY check (id>0), 
+	name varchar(30) NOT NULL,		
+	location varchar(30) NOT NULL,					
+	commission int);
+
+CREATE TABLE ancestor (
+	id int PRIMARY KEY check (id>0),	
+	name varchar(30) NOT NULL,		
+	address varchar(30) NOT NULL,		
+	privilege int);
+
+
+CREATE TABLE services (
+	id int PRIMARY KEY check (id>0),	
+	type varchar(40) NOT NULL,			
+	priceforkm int NOT NULL,
+	maxzakaz int);
+
+CREATE TABLE zakazonconstruction (
+	number int PRIMARY KEY check (number>0),	
+	data varchar(30) NOT NULL,						
+	ancestor int,
+	firm int,						 
+	services int,						
+	zakaz int,						
+	total int,
+
+	 FOREIGN KEY (firm) REFERENCES road_firm(id) ON DELETE CASCADE ON UPDATE CASCADE,
+	 FOREIGN KEY (ancestor) REFERENCES ancestor(id) ON DELETE CASCADE ON UPDATE CASCADE,
+	 FOREIGN KEY (services) REFERENCES services(id) ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+
+Заполнение:
+INSERT INTO road_firm 
+VALUES
+(1, 'АО Дорстрой', 'Н.Новгород', 3),
+(2, 'Магистраль', 'Кстово', 3),
+(3, 'Дорожный отряд 2', 'Дзержинск', 3),
+(4, 'Дорожный отряд 1', 'Бор', 3),
+(5, 'МП"Витязь"', 'Арзамас',5),
+(6, 'ДРСУ 4', 'Н.Новгород',3);
+
+INSERT INTO ancestor 
+VALUES
+(1, 'Гор.Администрация', 'Н.Новгород',0),
+(2, 'АО Весна',	'Арзамас',5),
+(3, 'Районная Администрация','Бор',0),
+(4, 'Фермерское хозяйство','Кстово',12),
+(5, 'АО "Рассвет"', 'Н.Новгород',5);
+
+INSERT INTO services 
+VALUES
+(1, 'Бетонная дорога 1 категории', 10000, 460),
+(2, 'Асфальтовая дорога 1 категории', 13000, 300),
+(3, 'Асфальтовая дорога 2 категории', 15000, 280),
+(4, 'Укрепление дорожного полотна', 8000, 500),
+(5, 'Расширение дорожного полотна', 10000, 460),
+(6, 'Озеленение придорожного участка', 7000, 500),
+(7, 'Дорожная разметка', 6500, 780);
+
+INSERT INTO zakazonconstruction 
+VALUES
+(1, '1Понедельник', 3, 2, 3, 70,1050000),
+(2, '1Понедельник', 4, 4, 1, 60, 600000),
+(3, '2Вторник', 1, 1, 5, 100, 1000000),
+(4, '2Вторник', 2, 3, 2, 40, 520000),
+(5, '2Вторник', 4, 1, 7, 10, 65000),
+(6, '2Вторник',4, 1, 2, 10, 130000),
+(7, '2Вторник',4, 2, 2, 5, 65000),
+(8, '3Среда',3, 2, 4, 7, 56000),
+(9, '3Среда',4, 2, 3, 2, 30000),
+(10, '4Четверг', 2, 2, 1, 2, 10000),
+(11, '4Четверг', 2, 2, 1, 2, 10000),
+(12, '4Четверг', 2, 2, 2, 5, 65000),
+(13, '4Четверг', 3, 5, 4, 20, 160000),
+(14, '4Четверг', 3, 6, 4, 30, 240000),
+(15, '4Четверг', 4, 4, 6, 2, 16000),
+(16, '4Четверг', 4, 4, 5, 1, 10000),
+(17, '4Четверг', 5, 1, 2, 5,65000);
+
+3).	SELECT * FROM road_firm;
+	SELECT * FROM ancestor;
+	SELECT * FROM services;
+	SELECT * FROM zakazonconstruction;
+
+
+4).     a. SELECT DISTINCT privilege FROM ancestor;
+	b. SELECT DISTINCT location FROM road_firm;
+	c. SELECT DISTINCT type FROM services;
+
+
+5).     a. SELECT name,location FROM road_firm WHERE commission<4;
+	b. SELECT id,name FROM ancestor WHERE name LIKE '%Администрация%';
+	c. SELECT type, priceforkm FROM services WHERE maxzakaz>0;
+
+
+6).     a. SELECT zakazonconstruction.number, road_firm.name, zakazonconstruction.data, zakazonconstruction.zakaz FROM zakazonconstruction, road_firm WHERE zakazonconstruction.firm=road_firm.id ORDER BY zakazonconstruction.data, zakazonconstruction.zakaz;
+	b. SELECT zakazonconstruction.data, road_firm.name, services.type, zakazonconstruction.total FROM zakazonconstruction, services, road_firm WHERE zakazonconstruction.firm=road_firm.id AND zakazonconstruction.services=services.id;
+
+
+7).	a. SELECT DISTINCT ancestor.name FROM ancestor, zakazonconstruction, road_firm WHERE zakazonconstruction.firm=road_firm.id AND zakazonconstruction.ancestor=ancestor.id  AND road_firm.location!=ancestor.address;
+	b. SELECT road_firm.name, road_firm.commission FROM road_firm, zakazonconstruction WHERE zakazonconstruction.firm=road_firm.id AND zakazonconstruction.total>100000 AND (zakazonconstruction.data LIKE '%2%' OR zakazonconstruction.data LIKE '%3%' OR zakazonconstruction.data LIKE '%4%');
+	с. SELECT DISTINCT ancestor.name, ancestor.address FROM ancestor, zakazonconstruction, road_firm WHERE zakazonconstruction.firm=road_firm.id AND zakazonconstruction.ancestor=ancestor.id AND ancestor.id IN(SELECT zakazonconstruction.ancestor FROM zakazonconstruction GROUP BY zakazonconstruction.ancestor, zakazonconstruction.firm HAVING COUNT(*)>1) AND road_firm.name LIKE '%Магистр%';
+	d. SELECT zakazonconstruction.number, ancestor.name, road_firm.name FROM zakazonconstruction, road_firm, ancestor WHERE zakazonconstruction.firm=road_firm.id AND zakazonconstruction.ancestor=ancestor.id AND road_firm.location LIKE '%Новгород%' ORDER BY ancestor.name;
+
+
+8).	UPDATE zakazonconstruction SET total=total-(total/100*ancestor.privilege) FROM ancestor WHERE zakazonconstruction.ancestor=ancestor.id;
+
+
+9).	ALTER TABLE zakazonconstruction ADD COLUMN commission int;
+	UPDATE zakazonconstruction SET commission = total/100*road_firm.commission FROM road_firm WHERE zakazonconstruction.firm=road_firm.id;
+	SELECT * FROM zakazonconstruction;
+
+10).	a. SELECT DISTINCT road_firm.name FROM road_firm, zakazonconstruction, ancestor WHERE zakazonconstruction.firm=road_firm.id AND zakazonconstruction.ancestor=ancestor.id AND ancestor.address IN ('Бор' , 'Кстово');
+	b. SELECT DISTINCT road_firm.name FROM zakazonconstruction, road_firm, services WHERE zakazonconstruction.firm=road_firm.id AND zakazonconstruction.services=services.id AND zakazonconstruction.services IN (SELECT services.id FROM services WHERE priceforkm>10000);
+	c. 1) SELECT DISTINCT ancestor.name, ancestor.address FROM ancestor, zakazonconstruction, road_firm WHERE zakazonconstruction.firm=road_firm.id AND zakazonconstruction.ancestor=ancestor.id  AND road_firm.location NOT IN(ancestor.address);
+	   2) SELECT DISTINCT ancestor.name, ancestor.address FROM ancestor, zakazonconstruction, road_firm WHERE zakazonconstruction.firm=road_firm.id AND zakazonconstruction.ancestor=ancestor.id AND ancestor.id IN(SELECT zakazonconstruction.ancestor FROM zakazonconstruction GROUP BY zakazonconstruction.ancestor, zakazonconstruction.firm HAVING COUNT(*)>1) AND road_firm.name LIKE '%Магистр%';
+11).	a. SELECT DISTINCT road_firm.name FROM road_firm WHERE road_firm.id=ANY(SELECT road_firm.id FROM road_firm WHERE road_firm.commission IN (SELECT MIN(road_firm.commission) FROM road_firm));
+	b. SELECT ancestor.name FROM zakazonconstruction, ancestor, road_firm WHERE zakazonconstruction.firm=road_firm.id AND zakazonconstruction.ancestor=ancestor.id AND zakazonconstruction.data LIKE '%3%' AND road_firm.id=ANY(SELECT road_firm.id FROM road_firm, zakazonconstruction WHERE zakazonconstruction.firm=road_firm.id AND zakazonconstruction.total=(SELECT MAX(zakazonconstruction.total) FROM zakazonconstruction));
+	c. SELECT zakazonconstruction.number, ancestor.name, road_firm.name FROM zakazonconstruction, road_firm, ancestor WHERE zakazonconstruction.firm=road_firm.id AND zakazonconstruction.ancestor=ancestor.id AND road_firm.id=ANY(SELECT id FROM road_firm WHERE location LIKE '%Новгород%') ORDER BY ancestor.name;
+	d. SELECT DISTINCT ancestor.name FROM ancestor, road_firm, zakazonconstruction WHERE zakazonconstruction.firm=road_firm.id AND zakazonconstruction.ancestor=ancestor.id AND ancestor.privilege IN (SELECT MAX(ancestor.privilege) FROM ancestor, zakazonconstruction, road_firm WHERE zakazonconstruction.firm=road_firm.id AND zakazonconstruction.ancestor=ancestor.id AND zakazonconstruction.ancestor!=ALL(SELECT ancestor.id FROM road_firm, ancestor, zakazonconstruction WHERE zakazonconstruction.firm=road_firm.id AND zakazonconstruction.ancestor=ancestor.id AND road_firm.commission>5));
+12).	SELECT name, location FROM road_firm union SELECT name,address FROM ancestor;
+13).	a. SELECT DISTINCT services.type FROM services, zakazonconstruction zak, road_firm, ancestor WHERE  zak.ancestor=ancestor.id AND zak.firm=road_firm.id AND zak.services=services.id AND EXISTS(SELECT services.id FROM  services, ancestor, road_firm WHERE zak.ancestor=ancestor.id AND zak.firm=road_firm.id AND zak.services=services.id AND road_firm.location=ancestor.address AND zak.data NOT LIKE '%4%'); 
+	b. SELECT DISTINCT ancestor.name FROM zakazonconstruction zak, road_firm, ancestor WHERE zak.ancestor=ancestor.id AND zak.firm=road_firm.id AND ancestor.name NOT IN(SELECT ancestor.name FROM zakazonconstruction zak, road_firm, ancestor WHERE zak.ancestor=ancestor.id AND zak.firm=road_firm.id AND EXISTS (SELECT ancestor.name FROM zakazonconstruction, road_firm, ancestor WHERE zak.ancestor=ancestor.id AND zak.firm=road_firm.id AND road_firm.commission<5 AND zak.data LIKE '%Вт%'));
+	c. SELECT DISTINCT ancestor.name FROM zakazonconstruction zak, road_firm, ancestor WHERE zak.ancestor=ancestor.id AND zak.firm=road_firm.id AND EXISTS(SELECT ancestor.name FROM road_firm, ancestor WHERE zak.ancestor=ancestor.id AND zak.firm=road_firm.id AND 6=(SELECT COUNT(DISTINCT firm) FROM zakazonconstruction,services WHERE  zakazonconstruction.services=services.id AND services.type LIKE '%Асфальтовая дорога%' AND ancestor=zak.ancestor));
+	INSERT INTO zakazonconstruction (number,data,ancestor,firm,services,zakaz,total) VALUES (18, '4Четверг', 4, 3, 2, 2, 10000);
+	INSERT INTO zakazonconstruction (number,data,ancestor,firm,services,zakaz,total) VALUES (19, '4Четверг', 4, 4, 2, 2, 10000);
+	INSERT INTO zakazonconstruction (number,data,ancestor,firm,services,zakaz,total) VALUES (20, '4Четверг', 4, 5, 2, 2, 10000);
+	INSERT INTO zakazonconstruction (number,data,ancestor,firm,services,zakaz,total) VALUES (21, '4Четверг', 4, 6, 2, 2, 10000);
+	d. SELECT DISTINCT ancestor.name FROM zakazonconstruction zak, road_firm, ancestor WHERE zak.ancestor=ancestor.id AND zak.firm=road_firm.id AND EXISTS(SELECT ancestor.name FROM road_firm, ancestor WHERE zak.ancestor=ancestor.id AND zak.firm=road_firm.id AND ancestor.name NOT IN(SELECT ancestor.name FROM road_firm, ancestor WHERE zak.ancestor=ancestor.id AND zak.firm=road_firm.id AND road_firm.name IN (SELECT road_firm.name FROM road_firm, ancestor WHERE zak.ancestor=ancestor.id AND zak.firm=road_firm.id AND ancestor.name LIKE '%Весна%')));
+14).	a. SELECT avg(services.priceforkm) FROM services, zakazonconstruction, ancestor WHERE zakazonconstruction.services=services.id AND zakazonconstruction.ancestor=ancestor.id AND ancestor.address LIKE '%Новгород%';
+	b. SELECT COUNT(zakazonconstruction.number) FROM zakazonconstruction, ancestor, road_firm WHERE zakazonconstruction.ancestor=ancestor.id AND zakazonconstruction.firm=road_firm.id AND ancestor.name='Гор.Администрация' AND road_firm.name='Магистраль';
+	c. SELECT SUM(zakazonconstruction.total) FROM zakazonconstruction, ancestor WHERE zakazonconstruction.ancestor=ancestor.id AND ancestor.address LIKE '%Новгород%';
+	d. SELECT road_firm.name FROM zakazonconstruction, road_firm WHERE zakazonconstruction.firm=road_firm.id AND road_firm.commission>(SELECT avg(commission) FROM road_firm);
+15).	a. SELECT road_firm.name, SUM(zakazonconstruction.zakaz) FROM zakazonconstruction, road_firm, services WHERE zakazonconstruction.firm=road_firm.id AND zakazonconstruction.services=services.id AND services.type LIKE '%дорога%' GROUP BY road_firm.name;
+	b. SELECT road_firm.name FROM road_firm, zakazonconstruction WHERE zakazonconstruction.firm=road_firm.id GROUP BY road_firm.id HAVING COUNT(*)>4;
+	c. SELECT zakazonconstruction.firm, zakazonconstruction.ancestor, SUM(zakazonconstruction.total) FROM zakazonconstruction WHERE zakazonconstruction.data LIKE '%Пон%' OR zakazonconstruction.data LIKE '%Вт%' GROUP BY zakazonconstruction.ancestor, zakazonconstruction.firm; 
+	d. SELECT zakazonconstruction.data, COUNT(zakazonconstruction.firm) FROM zakazonconstruction, road_firm WHERE zakazonconstruction.firm=road_firm.id AND road_firm.commission=(SELECT MAX(commission) FROM road_firm) GROUP BY zakazonconstruction.data;
+
