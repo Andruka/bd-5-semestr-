@@ -1,0 +1,35 @@
+
+create table persons(
+id INT NOT NULL,
+surname varchar(40) NOT NULL,
+name varchar(40) NOT NULL,
+PRIMARY KEY(id)
+);
+create table location(
+id INT,
+foreign key (id) references persons(id) on delete cascade on update cascade,
+flat INT NOT NULL,
+home INT NOT NULL,
+street varchar(40) NOT NULL,
+city varchar(40) NOT NULL
+);
+create table number(
+id INT,
+foreign key (id) references persons(id) on delete cascade on update cascade,
+num varchar(40) NOT NULL
+);
+
+create table email(
+id INT,
+foreign key (id) references persons(id) on delete cascade on update cascade,
+mail varchar(40) NOT NULL
+);
+INSERT INTO persons values(1,'Кузьминов','Андрей');
+INSERT INTO persons values(2,'Пестов','Артём');
+INSERT INTO location values(1,24,4,'ул.Ленина','Нижний Новгород');
+INSERT INTO location values(2,10,2,'ул.Минина','Нижний Новгород');
+INSERT INTO number values(1,'89005004545');
+INSERT INTO number values(2,'89501235656');
+INSERT INTO email values(1,'kuzminov@mail.ru');
+INSERT INTO email values(2,'pestov@mail.ru');
+
